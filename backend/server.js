@@ -195,11 +195,12 @@ app.delete("/deleteNote/:noteId", express.json(), async (req, res) => {
     }
 
     const token = req.headers.authorization.split(" ")[1];
-    jwt.verify(token, "secret-key", async (err, _) => {
+    jwt.verify(token, "secret-key", async (err, decoded) => {
       if (err) return res.status(401).send("Unauthorized.");
 
       const collection = db.collection(COLLECTIONS.notes);
       const result = await collection.deleteOne({
+        username: decoded.username,
         _id: new ObjectId(noteId),
       });
 
@@ -230,7 +231,7 @@ app.patch("/editNote/:noteId", express.json(), async (req, res) => {
     }
 
     const token = req.headers.authorization.split(" ")[1];
-    jwt.verify(token, "secret-key", async (err, _) => {
+    jwt.verify(token, "secret-key", async (err, decoded) => {
       if (err) return res.status(401).send("Unauthorized.");
 
       const collection = db.collection(COLLECTIONS.notes);
@@ -239,21 +240,30 @@ app.patch("/editNote/:noteId", express.json(), async (req, res) => {
 
       if (!!title && !!content) {
         result = await collection.updateOne(
-          { _id: new ObjectId(noteId) },
+          {
+            username: decoded.username,
+            _id: new ObjectId(noteId),
+          },
           {
             $set: { title: title, content: content },
           },
         );
       } else if (!!title) {
         result = await collection.updateOne(
-          { _id: new ObjectId(noteId) },
+          {
+            username: decoded.username,
+            _id: new ObjectId(noteId),
+          },
           {
             $set: { title: title },
           },
         );
       } else {
         result = await collection.updateOne(
-          { _id: new ObjectId(noteId) },
+          {
+            username: decoded.username,
+            _id: new ObjectId(noteId),
+          },
           {
             $set: { content: content },
           },
